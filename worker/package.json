@@ -1,0 +1,22 @@
+{
+  "name": "integrity-gate-worker",
+  "version": "1.0.0",
+  "description": "IntegrityGate GitHub App - Cloudflare Worker",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create integrity-gate",
+    "db:migrate": "wrangler d1 execute integrity-gate --file=./src/db/schema.sql",
+    "db:migrate:local": "wrangler d1 execute integrity-gate --local --file=./src/db/schema.sql"
+  },
+  "dependencies": {
+    "hono": "^4.3.0",
+    "stripe": "^14.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240512.0",
+    "typescript": "^5.4.0",
+    "wrangler": "^3.57.0"
+  }
+}

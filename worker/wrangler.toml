@@ -1,0 +1,22 @@
+name = "integrity-gate"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+ENVIRONMENT = "production"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "integrity-gate"
+database_id = "YOUR_D1_DATABASE_ID"  # Replace after: wrangler d1 create integrity-gate
+
+# Secrets (add via: wrangler secret put SECRET_NAME)
+# - GITHUB_APP_ID
+# - GITHUB_PRIVATE_KEY
+# - GITHUB_WEBHOOK_SECRET
+# - STRIPE_SECRET_KEY
+
+[env.dev]
+name = "integrity-gate-dev"
+vars = { ENVIRONMENT = "development" }
