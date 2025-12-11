@@ -4,6 +4,16 @@ import { verifyWebhookSignature } from './github/auth';
 import { handlePush } from './webhooks/push';
 import { handlePullRequest } from './webhooks/pull_request';
 import { handleInstallation } from './webhooks/installation';
+import {
+  verifyTrinityCapsule,
+  verifyBlake3Hash,
+  storeTrinitySeal,
+  batchStoreTrinitySeal,
+  QCMCapsule,
+  PHI,
+  RAS_ROOT,
+  TRINITY_NODES
+} from './integrity/trinity';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -142,5 +152,114 @@ function determinePlanFromSubscription(subscription: any): string {
   };
   return pricePlanMap[priceId] || 'starter';
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// TRINITY VERIFICATION API - EpochCore Quantum Watermarking
+// ═══════════════════════════════════════════════════════════════════
+
+// Verify a Trinity-sealed QCM capsule
+app.post('/api/verify-trinity', async (c) => {
+  const body = await c.req.json();
+  const { capsule, file_hash } = body;
+
+  if (!capsule) {
+    return c.json({ error: 'Missing capsule in request body' }, 400);
+  }
+
+  const result = await verifyTrinityCapsule(capsule as QCMCapsule, file_hash);
+
+  return c.json({
+    verified: result.valid,
+    coherence: result.coherence,
+    details: result
+  });
+});
+
+// Verify a Blake3 hash against stored Trinity seals
+app.get('/api/verify-trinity/:hash', async (c) => {
+  const hash = c.req.param('hash');
+
+  const result = await verifyBlake3Hash(c.env, hash);
+
+  if (!result.found) {
+    return c.json({
+      found: false,
+      message: 'No Trinity seal found for this hash'
+    }, 404);
+  }
+
+  return c.json({
+    found: true,
+    verified: result.verification?.valid,
+    coherence: result.verification?.coherence,
+    timestamp: result.verification?.timestamp,
+    phi_resonance: result.verification?.phi_resonance,
+    trinity_signatures: result.verification?.trinity_signatures
+  });
+});
+
+// Store a single Trinity seal (sync from air-gapped hardware)
+app.post('/api/trinity/seal', async (c) => {
+  const capsule = await c.req.json() as QCMCapsule;
+
+  const result = await storeTrinitySeal(c.env, capsule);
+
+  if (!result.success) {
+    return c.json({ error: result.error }, 400);
+  }
+
+  return c.json({
+    success: true,
+    message: 'Trinity seal stored successfully'
+  });
+});
+
+// Batch store Trinity seals (sync 626+ files from air-gapped hardware)
+app.post('/api/trinity/seal/batch', async (c) => {
+  const { capsules } = await c.req.json();
+
+  if (!Array.isArray(capsules)) {
+    return c.json({ error: 'Expected array of capsules' }, 400);
+  }
+
+  const result = await batchStoreTrinitySeal(c.env, capsules);
+
+  return c.json({
+    success: result.success,
+    failed: result.failed,
+    total: capsules.length,
+    coherence_rate: result.success / capsules.length,
+    errors: result.errors.slice(0, 10) // First 10 errors only
+  });
+});
+
+// Get Trinity system status
+app.get('/api/trinity/status', async (c) => {
+  const totalSeals = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM trinity_seals'
+  ).first<{ count: number }>();
+
+  const recentSeals = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM trinity_seals WHERE created_at > datetime("now", "-24 hours")'
+  ).first<{ count: number }>();
+
+  const avgCoherence = await c.env.DB.prepare(
+    'SELECT AVG(coherence) as avg FROM trinity_seals'
+  ).first<{ avg: number }>();
+
+  return c.json({
+    system: 'Trinity Flash Sync',
+    version: 'QCM/1',
+    nodes: TRINITY_NODES,
+    phi: PHI,
+    ras_root: RAS_ROOT,
+    stats: {
+      total_seals: totalSeals?.count || 0,
+      seals_24h: recentSeals?.count || 0,
+      avg_coherence: avgCoherence?.avg || 0
+    },
+    status: 'OPERATIONAL'
+  });
+});
 
 export default app;

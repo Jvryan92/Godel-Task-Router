@@ -39,7 +39,22 @@ CREATE TABLE IF NOT EXISTS check_runs (
   FOREIGN KEY (installation_id) REFERENCES installations(github_installation_id)
 );
 
+-- Trinity Flash Sync seals (EpochCore quantum watermarking)
+CREATE TABLE IF NOT EXISTS trinity_seals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  file_hash TEXT UNIQUE NOT NULL,        -- Blake3 hash of file
+  algorithm TEXT DEFAULT 'blake3',        -- Hash algorithm used
+  timestamp TEXT NOT NULL,                -- Original seal timestamp (ISO8601)
+  phi_resonance REAL,                     -- PHI value (1.618033988749895)
+  coherence REAL,                         -- Verification coherence (0-1)
+  capsule_data TEXT NOT NULL,             -- Full QCM capsule JSON
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  synced_from TEXT DEFAULT 'air-gapped'   -- Source: 'air-gapped', 'online', etc.
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_installations_account ON installations(account_login);
 CREATE INDEX IF NOT EXISTS idx_usage_month ON usage(month);
 CREATE INDEX IF NOT EXISTS idx_check_runs_repo ON check_runs(repo_full_name);
+CREATE INDEX IF NOT EXISTS idx_trinity_seals_hash ON trinity_seals(file_hash);
+CREATE INDEX IF NOT EXISTS idx_trinity_seals_timestamp ON trinity_seals(timestamp);
