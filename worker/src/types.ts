@@ -1,5 +1,6 @@
 export interface Env {
   DB: D1Database;
+  R2: R2Bucket;
   GITHUB_APP_ID: string;
   GITHUB_PRIVATE_KEY: string;
   GITHUB_WEBHOOK_SECRET: string;

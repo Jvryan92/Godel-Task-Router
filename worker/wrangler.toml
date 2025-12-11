@@ -11,6 +11,12 @@ binding = "DB"
 database_name = "integrity-gate"
 database_id = "YOUR_D1_DATABASE_ID"  # Replace after: wrangler d1 create integrity-gate
 
+# R2 Bucket binding (for Trinity seals from air-gapped hardware)
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "epochcore-genesis"  # Your existing bucket with 626 seals
+# preview_bucket_name = "epochcore-genesis-dev"
+
 # Secrets (add via: wrangler secret put SECRET_NAME)
 # - GITHUB_APP_ID
 # - GITHUB_PRIVATE_KEY

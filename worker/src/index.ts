@@ -262,4 +262,166 @@ app.get('/api/trinity/status', async (c) => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// R2 SYNC - Pull seals directly from EpochCore Genesis bucket
+// ═══════════════════════════════════════════════════════════════════
+
+// List available capsules in R2
+app.get('/api/trinity/r2/list', async (c) => {
+  const prefix = c.req.query('prefix') || 'trinity_watermark_output/';
+  const limit = parseInt(c.req.query('limit') || '100');
+
+  const listed = await c.env.R2.list({ prefix, limit });
+
+  return c.json({
+    prefix,
+    count: listed.objects.length,
+    truncated: listed.truncated,
+    objects: listed.objects.map(obj => ({
+      key: obj.key,
+      size: obj.size,
+      uploaded: obj.uploaded
+    }))
+  });
+});
+
+// Sync all capsules from R2 to D1
+app.post('/api/trinity/r2/sync', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const prefix = body.prefix || 'trinity_watermark_output/';
+  const dryRun = body.dry_run || false;
+
+  let cursor: string | undefined;
+  let totalFiles = 0;
+  let synced = 0;
+  let failed = 0;
+  const errors: string[] = [];
+
+  // Paginate through all objects
+  do {
+    const listed = await c.env.R2.list({
+      prefix,
+      limit: 500,
+      cursor
+    });
+
+    for (const obj of listed.objects) {
+      // Only process .json capsule files
+      if (!obj.key.endsWith('.json')) continue;
+
+      totalFiles++;
+
+      if (dryRun) {
+        synced++;
+        continue;
+      }
+
+      try {
+        const file = await c.env.R2.get(obj.key);
+        if (!file) continue;
+
+        const text = await file.text();
+        const capsule = JSON.parse(text) as QCMCapsule;
+
+        const result = await storeTrinitySeal(c.env, capsule);
+        if (result.success) {
+          synced++;
+        } else {
+          failed++;
+          errors.push(`${obj.key}: ${result.error}`);
+        }
+      } catch (err) {
+        failed++;
+        errors.push(`${obj.key}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    }
+
+    cursor = listed.truncated ? listed.cursor : undefined;
+  } while (cursor);
+
+  return c.json({
+    dry_run: dryRun,
+    total_files: totalFiles,
+    synced,
+    failed,
+    coherence_rate: totalFiles > 0 ? synced / totalFiles : 0,
+    errors: errors.slice(0, 20) // First 20 errors
+  });
+});
+
+// Sync a single file from R2 by key
+app.post('/api/trinity/r2/sync/:key', async (c) => {
+  const key = decodeURIComponent(c.req.param('key'));
+
+  const file = await c.env.R2.get(key);
+  if (!file) {
+    return c.json({ error: 'File not found in R2' }, 404);
+  }
+
+  try {
+    const text = await file.text();
+    const capsule = JSON.parse(text) as QCMCapsule;
+
+    const result = await storeTrinitySeal(c.env, capsule);
+
+    if (!result.success) {
+      return c.json({ error: result.error }, 400);
+    }
+
+    return c.json({
+      success: true,
+      key,
+      message: 'Seal synced from R2 to D1'
+    });
+  } catch (err) {
+    return c.json({
+      error: err instanceof Error ? err.message : 'Failed to parse capsule'
+    }, 400);
+  }
+});
+
+// Get R2 bucket stats
+app.get('/api/trinity/r2/stats', async (c) => {
+  const prefix = 'trinity_watermark_output/';
+
+  let totalFiles = 0;
+  let totalSize = 0;
+  let cursor: string | undefined;
+
+  do {
+    const listed = await c.env.R2.list({ prefix, limit: 1000, cursor });
+
+    for (const obj of listed.objects) {
+      if (obj.key.endsWith('.json')) {
+        totalFiles++;
+        totalSize += obj.size;
+      }
+    }
+
+    cursor = listed.truncated ? listed.cursor : undefined;
+  } while (cursor);
+
+  // Get D1 sync status
+  const dbCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM trinity_seals'
+  ).first<{ count: number }>();
+
+  return c.json({
+    r2: {
+      bucket: 'epochcore-genesis',
+      prefix,
+      total_capsules: totalFiles,
+      total_size_bytes: totalSize,
+      total_size_mb: (totalSize / (1024 * 1024)).toFixed(2)
+    },
+    d1: {
+      synced_seals: dbCount?.count || 0
+    },
+    sync_status: {
+      pending: totalFiles - (dbCount?.count || 0),
+      complete: (dbCount?.count || 0) >= totalFiles
+    }
+  });
+});
+
 export default app;
