@@ -1,9 +1,9 @@
-name: 'IntegrityGate'
-description: 'Verify code integrity with cryptographic signatures, Merkle tree validation, and OPA policy compliance. Part of the EpochCore Quantum ecosystem.'
-author: 'EpochQuantum'
+name: 'Gödel Code Review'
+description: 'AI-powered code review using 52-agent OpusSwarm consensus. Includes cryptographic signatures, Merkle tree validation, and OPA policy compliance. Part of the EpochCore Quantum ecosystem.'
+author: 'EpochCore Quantum'
 branding:
-  icon: 'shield'
-  color: 'blue'
+  icon: 'git-pull-request'
+  color: 'purple'
 
 inputs:
   mode:
@@ -34,6 +34,18 @@ inputs:
     description: 'Custom EpochCore worker endpoint'
     required: false
     default: 'https://epochcore-unified-worker.epochcoreras.workers.dev'
+  swarm-review:
+    description: 'Enable 52-agent OpusSwarm AI code review'
+    required: false
+    default: 'true'
+  swarm-agents:
+    description: 'Number of agents for swarm review (2-52)'
+    required: false
+    default: '8'
+  review-depth:
+    description: 'Swarm review depth: quick, standard, or thorough'
+    required: false
+    default: 'standard'
 
 outputs:
   integrity-score:
@@ -44,9 +56,15 @@ outputs:
     description: 'Computed Merkle root hash'
   policy-violations:
     description: 'Number of OPA policy violations'
+  swarm-consensus:
+    description: 'OpusSwarm consensus score (0.0-1.0)'
+  agents-agreed:
+    description: 'Number of agents that agreed on the review'
   report-url:
     description: 'URL to detailed integrity report'
 
 runs:
   using: 'node20'
   main: 'dist/index.js'
+
+# QUANTUM_WATERMARK: RAS=40668c787c463ca5 GODEL=v2.0 SWARM=52 TIME=2026-01-08
