@@ -29,10 +29,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Gödel Code Review
-        uses: epochcoreqcs/godel-code-review@v2
+        uses: Jvryan92/integrity-gate-action@v2
         with:
           swarm-review: 'true'
-          swarm-agents: '8'
+          swarm-agents: '8'  # Free tier - 8 agents
 ```
 
 ## Inputs
@@ -46,7 +46,12 @@ jobs:
 | `signature-verify` | Enable signature verification | `true` |
 | `merkle-validate` | Enable Merkle tree validation | `true` |
 | `fail-on-warning` | Fail on warnings | `false` |
-| `license-key` | Pro/Enterprise license key | `''` |
+| `license-key` | Team/Business/Enterprise license key | `''` |
+| **AWS Options** | | |
+| `aws-bedrock` | Use AWS Bedrock for AI review | `false` |
+| `aws-bedrock-model` | `claude-3-sonnet`, `claude-3-haiku`, `titan-express` | `claude-3-haiku` |
+| `aws-security-hub` | Export findings to Security Hub | `false` |
+| `aws-region` | AWS region | `us-east-1` |
 
 ## Outputs
 
@@ -116,19 +121,45 @@ Errors: 0
 
 | Tier | Agents | Features | Price |
 |------|--------|----------|-------|
-| **Community** | 8 | Basic review, local fallback | Free |
-| **Pro** | 26 | Full swarm, priority API | $29/mo |
-| **Enterprise** | 52 | All agents, SLA, custom policies | $199/mo |
+| **Open Source** | 8 | Basic review, local fallback | **Free forever** |
+| **Team** | 16 | Full swarm, AWS Bedrock integration | **$9/mo** |
+| **Business** | 32 | Priority API, Security Hub export | **$29/mo** |
+| **Enterprise** | 52 | All agents, SLA, custom policies | **$99/mo** |
+
+> 💡 **AWS Partner Discount**: 20% off with active AWS account - use code `AWS-PARTNER-2026`
+
+### AWS Integration
+- ✅ **AWS Bedrock** - Claude/Titan model support for AI review
+- ✅ **AWS Security Hub** - Export findings automatically
+- ✅ **AWS CodePipeline** - Native integration
+- ✅ **AWS CodeGuru** - Complementary analysis
+- ✅ **AWS Partner Network** - Verified ISV Partner (S-0084812)
 
 ## Advanced Usage
+
+### AWS Bedrock + Security Hub Integration
+
+```yaml
+- uses: Jvryan92/integrity-gate-action@v2
+  with:
+    swarm-review: 'true'
+    swarm-agents: '16'
+    aws-bedrock: 'true'
+    aws-bedrock-model: 'claude-3-haiku'
+    aws-security-hub: 'true'
+    aws-region: 'us-east-1'
+  env:
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
 
 ### Deep Security Scan
 
 ```yaml
-- uses: epochcoreqcs/godel-code-review@v2
+- uses: Jvryan92/integrity-gate-action@v2
   with:
     mode: 'deep'
-    swarm-agents: '26'
+    swarm-agents: '32'
     review-depth: 'thorough'
     fail-on-warning: 'true'
     license-key: ${{ secrets.EPOCHCORE_LICENSE }}

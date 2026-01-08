@@ -1,6 +1,6 @@
 name: 'Gödel Code Review'
-description: 'AI-powered code review using 52-agent OpusSwarm consensus. Includes cryptographic signatures, Merkle tree validation, and OPA policy compliance. Part of the EpochCore Quantum ecosystem.'
-author: 'EpochCore Quantum'
+description: 'AI-powered code review with AWS Bedrock + 52-agent OpusSwarm. Exports to AWS Security Hub. Cryptographic signatures, Merkle validation, OPA policies. AWS Partner Verified (S-0084812).'
+author: 'EpochCore Quantum - AWS Partner'
 branding:
   icon: 'git-pull-request'
   color: 'purple'
@@ -46,6 +46,22 @@ inputs:
     description: 'Swarm review depth: quick, standard, or thorough'
     required: false
     default: 'standard'
+  aws-bedrock:
+    description: 'Use AWS Bedrock for AI review (requires AWS credentials)'
+    required: false
+    default: 'false'
+  aws-bedrock-model:
+    description: 'Bedrock model: claude-3-sonnet, claude-3-haiku, titan-express'
+    required: false
+    default: 'claude-3-haiku'
+  aws-security-hub:
+    description: 'Export findings to AWS Security Hub'
+    required: false
+    default: 'false'
+  aws-region:
+    description: 'AWS region for Bedrock/Security Hub'
+    required: false
+    default: 'us-east-1'
 
 outputs:
   integrity-score:
