@@ -241,7 +241,7 @@ Each agent independently analyzes your code, then they **vote** on the final ass
 | **Pro** | 26 | $29/mo | Teams, startups |
 | **Enterprise** | 52 | $199/mo | Organizations, compliance |
 
-[**Get Pro License →**](https://epochcore.io/godel-pro)
+[**Get Pro License →**](https://godel-task-router.com/#pricing)
 [**Contact for Enterprise →**](mailto:enterprise@epochcore.io)
 
 ---
