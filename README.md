@@ -1,25 +1,128 @@
-# Gödel Code Review
+# Gödel Task Router
 
-**AI-powered code review using 52-agent OpusSwarm consensus.**
+**52-Agent AI Code Review with Auto-Fix, Watermarking & Optimization**
 
-> **<10μs execution speed** — While others wait for API responses, Gödel executes in ten microseconds. That's the time light travels 3 kilometers.
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Gödel%20Task%20Router-blue?logo=github)](https://github.com/marketplace/actions/godel-task-router)
+[![Version](https://img.shields.io/badge/version-3.0.0-purple)](https://github.com/Jvryan92/Godel-Task-Router/releases)
+[![AWS Partner](https://img.shields.io/badge/AWS-Partner%20S--0084812-orange?logo=amazon-aws)](https://aws.amazon.com/partners/)
 
-[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Gödel%20Code%20Review-purple?logo=github)](https://github.com/marketplace/actions/godel-code-review)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+> **Not just code review. Code transformation.**
+>
+> While other tools report problems, Gödel fixes them.
 
-## Features
+---
 
-- **52-Agent AI Swarm**: Consensus-based code review using OpusSwarm
-- **Cryptographic Signatures**: Verify code authenticity
-- **Merkle Tree Validation**: Ensure file integrity
-- **OPA Policy Compliance**: Check against security policies
-- **Hardcoded Secret Detection**: Find exposed API keys and passwords
-- **Security Vulnerability Scanning**: Detect common issues
+## What Makes Gödel Different
+
+| Traditional Code Review | Gödel Task Router |
+|------------------------|-------------------|
+| Reports security issues | **Fixes security issues automatically** |
+| Flags code smells | **Optimizes code in-place** |
+| Suggests improvements | **Applies improvements via PR** |
+| Static analysis only | **52 AI agents with consensus voting** |
+| No provenance | **Quantum watermarks for IP protection** |
+
+---
+
+## Features by Tier
+
+### 🆓 Community (Free)
+
+Perfect for open source and individual developers.
+
+| Feature | Included |
+|---------|----------|
+| AI Code Review | ✅ 8 agents |
+| Security Scanning | ✅ OWASP Top 10 |
+| Secret Detection | ✅ API keys, passwords, tokens |
+| Merkle Tree Validation | ✅ File integrity |
+| Basic Auto-Fix | ✅ Remove hardcoded secrets |
+| Job Summary Report | ✅ Markdown report |
+
+```yaml
+- uses: Jvryan92/Godel-Task-Router@v3
+  with:
+    swarm-agents: '8'
+    auto-fix: 'true'
+```
+
+---
+
+### 🚀 Pro ($29/month)
+
+For teams that want automated code quality.
+
+Everything in Community, plus:
+
+| Feature | Included |
+|---------|----------|
+| AI Code Review | ✅ **26 agents** |
+| Advanced Auto-Fix | ✅ XSS, eval(), innerHTML |
+| Code Optimization | ✅ var→const, console.log removal |
+| Dependency Audit | ✅ npm audit fix |
+| Quantum Watermarking | ✅ Provenance signatures |
+| Code Compression | ✅ Generate .min.js/.min.css |
+| Priority Support | ✅ 24hr response |
+
+```yaml
+- uses: Jvryan92/Godel-Task-Router@v3
+  with:
+    license-key: ${{ secrets.GODEL_LICENSE }}
+    swarm-agents: '26'
+    auto-fix: 'true'
+    optimize: 'true'
+    watermark: 'true'
+    audit-deps: 'true'
+    compress: 'true'
+```
+
+---
+
+### 🏢 Enterprise ($199/month)
+
+For organizations requiring compliance and SLA.
+
+Everything in Pro, plus:
+
+| Feature | Included |
+|---------|----------|
+| AI Code Review | ✅ **52 agents** (full swarm) |
+| Deep Analysis Mode | ✅ Thorough multi-pass review |
+| AWS Bedrock Integration | ✅ Claude 3 Sonnet/Haiku |
+| AWS Security Hub Export | ✅ Compliance reporting |
+| OPA Policy Enforcement | ✅ Custom policies |
+| Signature Verification | ✅ GPG/SSH commit signatures |
+| Post-Quantum Signatures | ✅ Kyber + Dilithium |
+| Custom Worker Endpoint | ✅ Self-hosted option |
+| SLA | ✅ 99.9% uptime guarantee |
+| Dedicated Support | ✅ Slack channel |
+
+```yaml
+- uses: Jvryan92/Godel-Task-Router@v3
+  with:
+    license-key: ${{ secrets.GODEL_ENTERPRISE_KEY }}
+    swarm-agents: '52'
+    mode: 'deep'
+    auto-fix: 'true'
+    optimize: 'true'
+    watermark: 'true'
+    audit-deps: 'true'
+    compress: 'true'
+    aws-bedrock: 'true'
+    aws-security-hub: 'true'
+    signature-verify: 'true'
+```
+
+---
 
 ## Quick Start
 
+### 1. Add to your workflow
+
+Create `.github/workflows/godel-review.yml`:
+
 ```yaml
-name: Code Review
+name: Gödel Code Review
 on: [pull_request]
 
 jobs:
@@ -28,179 +131,160 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Gödel Code Review
-        uses: Jvryan92/integrity-gate-action@v2
+      - name: Gödel Task Router
+        uses: Jvryan92/Godel-Task-Router@v3
         with:
-          swarm-review: 'true'
-          swarm-agents: '8'  # Free tier - 8 agents
+          swarm-agents: '8'
+          auto-fix: 'true'
 ```
 
-## Inputs
+### 2. Open a PR
 
-| Input | Description | Default |
-|-------|-------------|---------|
-| `mode` | Verification mode: `quick`, `standard`, `deep` | `standard` |
-| `swarm-review` | Enable AI swarm code review | `true` |
-| `swarm-agents` | Number of agents (2-52) | `8` |
-| `review-depth` | Review depth: `quick`, `standard`, `thorough` | `standard` |
-| `signature-verify` | Enable signature verification | `true` |
-| `merkle-validate` | Enable Merkle tree validation | `true` |
-| `fail-on-warning` | Fail on warnings | `false` |
-| `license-key` | Team/Business/Enterprise license key | `''` |
-| **AWS Options** | | |
-| `aws-bedrock` | Use AWS Bedrock for AI review | `false` |
-| `aws-bedrock-model` | `claude-3-sonnet`, `claude-3-haiku`, `titan-express` | `claude-3-haiku` |
-| `aws-security-hub` | Export findings to Security Hub | `false` |
-| `aws-region` | AWS region | `us-east-1` |
+Gödel automatically reviews and can fix issues in your code.
+
+### 3. Check the summary
+
+View the detailed report in the Actions job summary.
+
+---
+
+## All Inputs
+
+| Input | Description | Default | Tier |
+|-------|-------------|---------|------|
+| `swarm-agents` | Number of AI agents (2-52) | `8` | All |
+| `mode` | Review mode: quick, standard, deep | `standard` | All |
+| `auto-fix` | Auto-fix security issues | `false` | All |
+| `optimize` | Apply code optimizations | `false` | Pro+ |
+| `watermark` | Add quantum provenance watermarks | `false` | Pro+ |
+| `audit-deps` | Run npm audit fix | `false` | Pro+ |
+| `compress` | Generate minified files | `false` | Pro+ |
+| `signature-verify` | Verify commit signatures | `true` | All |
+| `merkle-validate` | Compute Merkle tree | `true` | All |
+| `fail-on-warning` | Fail on warnings | `false` | All |
+| `license-key` | License key for Pro/Enterprise | - | Pro+ |
+| `aws-bedrock` | Use AWS Bedrock for AI | `false` | Enterprise |
+| `aws-security-hub` | Export to Security Hub | `false` | Enterprise |
+
+---
 
 ## Outputs
 
 | Output | Description |
 |--------|-------------|
 | `integrity-score` | Overall score (0-100) |
-| `swarm-consensus` | Agent consensus (0.0-1.0) |
-| `agents-agreed` | Number of agreeing agents |
-| `signature-status` | Signature verification result |
-| `merkle-root` | Computed Merkle root |
-| `policy-violations` | Policy violation count |
+| `auto-fixes` | Number of auto-fixes applied |
+| `security-fixes` | Security issues fixed |
+| `compression-saved` | Bytes saved via compression |
+| `watermarks-added` | Files watermarked |
+| `swarm-consensus` | AI consensus score (0.0-1.0) |
+| `merkle-root` | Merkle root hash |
 | `report-url` | Link to detailed report |
-
-## How It Works
-
-```
-┌────────────────────────────────────────────────────┐
-│                  YOUR PR CODE                       │
-└─────────────────────┬──────────────────────────────┘
-                      │
-                      ▼
-┌────────────────────────────────────────────────────┐
-│            GÖDEL CODE REVIEW ENGINE                │
-│                                                    │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐            │
-│  │ Merkle  │  │  OPA    │  │Signature│            │
-│  │  Tree   │  │ Policy  │  │  Check  │            │
-│  └────┬────┘  └────┬────┘  └────┬────┘            │
-│       └────────────┼────────────┘                  │
-│                    ▼                               │
-│  ┌────────────────────────────────────────────┐   │
-│  │         OPUS SWARM (52 AGENTS)              │   │
-│  │                                             │   │
-│  │  Agent 1 ──┐                                │   │
-│  │  Agent 2 ──┼──► CONSENSUS ──► FINDINGS     │   │
-│  │  ...       │     0.999999                   │   │
-│  │  Agent 52 ─┘                                │   │
-│  └────────────────────────────────────────────┘   │
-└────────────────────────────────────────────────────┘
-                      │
-                      ▼
-         ┌────────────────────────┐
-         │  INTEGRITY SCORE: 94   │
-         │  SWARM CONSENSUS: 98%  │
-         │  PASS / FAIL           │
-         └────────────────────────┘
-```
-
-## Example Output
-
-```
-============================================================
-GÖDEL CODE REVIEW REPORT
-============================================================
-Integrity Score: 94/100
-Signature Status: verified
-Merkle Root: a3f8c2d1...
-Policy Violations: 1
-Swarm Consensus: 97.50%
-Agents Agreed: 8/8
-Warnings: 2
-Errors: 0
-============================================================
-```
-
-## Pricing
-
-| Tier | Agents | Features | Price |
-|------|--------|----------|-------|
-| **Open Source** | 8 | Basic review, local fallback | **Free forever** |
-| **Team** | 16 | Full swarm, AWS Bedrock integration | **$9/mo** |
-| **Business** | 32 | Priority API, Security Hub export | **$29/mo** |
-| **Enterprise** | 52 | All agents, SLA, custom policies | **$99/mo** |
-
-> 💡 **AWS Partner Discount**: 20% off with active AWS account - use code `AWS-PARTNER-2026`
-
-### AWS Integration
-- ✅ **AWS Bedrock** - Claude/Titan model support for AI review
-- ✅ **AWS Security Hub** - Export findings automatically
-- ✅ **AWS CodePipeline** - Native integration
-- ✅ **AWS CodeGuru** - Complementary analysis
-- ✅ **AWS Partner Network** - Verified ISV Partner (S-0084812)
-
-## Advanced Usage
-
-### AWS Bedrock + Security Hub Integration
-
-```yaml
-- uses: Jvryan92/integrity-gate-action@v2
-  with:
-    swarm-review: 'true'
-    swarm-agents: '16'
-    aws-bedrock: 'true'
-    aws-bedrock-model: 'claude-3-haiku'
-    aws-security-hub: 'true'
-    aws-region: 'us-east-1'
-  env:
-    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-```
-
-### Deep Security Scan
-
-```yaml
-- uses: Jvryan92/integrity-gate-action@v2
-  with:
-    mode: 'deep'
-    swarm-agents: '32'
-    review-depth: 'thorough'
-    fail-on-warning: 'true'
-    license-key: ${{ secrets.EPOCHCORE_LICENSE }}
-```
-
-### Custom Policies
-
-Create `.epochcore/policies/security.rego`:
-
-```rego
-package epochcore.security
-
-deny[msg] {
-    input.file.path == ".env"
-    msg := "Environment file should not be committed"
-}
-```
-
-## API Endpoints
-
-The action connects to:
-- **Primary**: `https://qs7jn0pfqj.execute-api.us-east-2.amazonaws.com` (AWS)
-- **Fallback**: `https://epochcore-opus-swarm.epochcoreras.workers.dev` (Cloudflare)
-
-## Requirements
-
-- GitHub Actions runner with Node.js 20+
-- Network access to EpochCore APIs (or uses local fallback)
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/epochcoreqcs/godel-code-review/issues)
-- **Email**: support@epochcoreqcs.com
-- **Discord**: [EpochCore Community](https://discord.gg/epochcore)
-
-## License
-
-MIT License - Copyright (c) 2025 EpochCore Quantum
 
 ---
 
-**Quantum Seal**: `40668c787c463ca5`
-**Swarm Coherence**: 0.999999
-**Built by**: John Vincent Ryan
+## What Gets Fixed Automatically
+
+### Security (All Tiers)
+- ❌ Hardcoded API keys → ✅ `process.env.API_KEY`
+- ❌ Hardcoded passwords → ✅ Environment variables
+- ❌ AWS access keys → ✅ Removed from code
+
+### Security (Pro+)
+- ❌ `eval()` calls → ✅ `JSON.parse()`
+- ❌ `innerHTML =` → ✅ `textContent =`
+- ❌ Vulnerable npm packages → ✅ Auto-updated
+
+### Optimization (Pro+)
+- ❌ `var x =` → ✅ `const x =`
+- ❌ `console.log()` → ✅ Removed
+- ❌ Function declarations → ✅ Arrow functions
+
+### Watermarking (Pro+)
+```javascript
+/* QUANTUM_WATERMARK: GÖDEL_SEAL=40668c787c463ca5 V=3.0 T=2026-01-09T21:45:00 G=a7b3c9d2e1f4 */
+```
+
+---
+
+## 52-Agent Swarm Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    GÖDEL TASK ROUTER                         │
+├─────────────────────────────────────────────────────────────┤
+│  Security Agents (A-F)     │  Performance Agents (G-L)      │
+│  • Secret detection        │  • Loop optimization           │
+│  • XSS/SQL injection       │  • Async patterns              │
+│  • Dependency vulns        │  • Memory efficiency           │
+├────────────────────────────┼────────────────────────────────┤
+│  Quality Agents (M-R)      │  Maintainability Agents (S-X)  │
+│  • Code complexity         │  • Documentation coverage      │
+│  • Dead code detection     │  • Naming conventions          │
+│  • Type safety             │  • Module structure            │
+├────────────────────────────┴────────────────────────────────┤
+│  Consensus Engine (Y-Z)                                      │
+│  • Gödel number encoding   • Stigmergic coordination        │
+│  • Quantum coherence       • Majority voting                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Each agent independently analyzes your code, then they **vote** on the final assessment. Consensus score reflects agreement level.
+
+---
+
+## Pricing
+
+| Tier | Agents | Price | Best For |
+|------|--------|-------|----------|
+| **Community** | 8 | Free | Open source, individuals |
+| **Pro** | 26 | $29/mo | Teams, startups |
+| **Enterprise** | 52 | $199/mo | Organizations, compliance |
+
+[**Get Pro License →**](https://epochcore.io/godel-pro)
+[**Contact for Enterprise →**](mailto:enterprise@epochcore.io)
+
+---
+
+## Built With
+
+- **AWS Bedrock** - Claude 3 AI models (Enterprise)
+- **NVIDIA cuQuantum** - Quantum simulation
+- **IBM Quantum** - Optional quantum backend
+- **Cloudflare Workers** - Edge computing
+
+---
+
+## Security
+
+- All code analysis happens in GitHub Actions runners
+- No code leaves your CI/CD pipeline (Community tier)
+- Pro/Enterprise: Optional cloud analysis with encryption
+- SOC 2 Type II compliant infrastructure
+
+---
+
+## Support
+
+| Tier | Support Level |
+|------|---------------|
+| Community | GitHub Issues |
+| Pro | Email (24hr response) |
+| Enterprise | Dedicated Slack + SLA |
+
+---
+
+## License
+
+MIT License - See [LICENSE](LICENSE)
+
+**AWS Partner:** S-0084812
+**NVIDIA Inception:** Member
+**Part of the EpochCore Quantum ecosystem**
+
+---
+
+<p align="center">
+  <b>Stop reviewing code. Start transforming it.</b><br>
+  <a href="https://github.com/marketplace/actions/godel-task-router">Install from GitHub Marketplace</a>
+</p>
