@@ -1,4 +1,4 @@
-﻿name: Godel Code Review
+﻿name: Godel Code Review v3.0
 on: [pull_request]
 
 jobs:
@@ -7,8 +7,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Godel Swarm Review
-        uses: Jvryan92/integrity-gate-action@v2
+      - name: Godel Swarm Enhanced Review
+        uses: Jvryan92/integrity-gate-action@v3.0
         with:
+          # Core Review
           swarm-review: 'true'
           swarm-agents: '8'
+          mode: 'standard'
+
+          # Auto-Fix Features (NEW in v3.0)
+          auto-fix: 'true'
+          optimize: 'true'
+          watermark: 'true'
+          audit-deps: 'true'
+          compress: 'false'
+
+          # Security
+          signature-verify: 'true'
+          merkle-validate: 'true'
