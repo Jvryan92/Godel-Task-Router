@@ -1,0 +1,16 @@
+[
+  {
+    "category": "paas",
+    "name": "APIAPI",
+    "slug": "apiapi",
+    "domain": "apiapi.com",
+    "palette": [
+      "#b2d7ab",
+      "#d7abb2",
+      "#abb2d7"
+    ],
+    "fonts": "Inter/SF Pro",
+    "pitch": "Build, deploy, and scale without ops.",
+    "date": "2026-01-21\npaas"
+  }
+]
