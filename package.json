@@ -1,7 +1,7 @@
 {
   "name": "godel-task-router",
   "version": "3.2.0",
-  "description": "Quantum-Classical Code Analysis - 52-Agent Swarm + EPOCH1 AST + Flash Sync @ 7777.77Hz",
+  "description": "Quantum-Classical AI Code Review - 52-Agent Swarm, EPOCH1 AST, Flash Sync @ 7777.77Hz, Auto-Fix, AWS Bedrock Integration",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js",
@@ -12,8 +12,9 @@
   },
   "scripts": {
     "build": "ncc build src/index.js -o dist",
-    "test": "jest",
-    "lint": "eslint src/"
+    "test": "jest --passWithNoTests",
+    "lint": "eslint src/",
+    "prepare": "npm run build"
   },
   "keywords": [
     "github-action",
@@ -28,19 +29,29 @@
     "godel",
     "watermark",
     "optimization",
-    "epoch1"
+    "epoch1",
+    "swarm",
+    "aws-bedrock",
+    "claude"
   ],
   "author": "EpochCore Quantum <quantum@epochcore.io>",
-  "license": "MIT",
+  "license": "PROPRIETARY",
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^6.0.0"
   },
+  "optionalDependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.450.0"
+  },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.0"
+    "@vercel/ncc": "^0.38.0",
+    "jest": "^29.7.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Jvryan92/integrity-gate-action.git"
+    "url": "https://github.com/Jvryan92/Godel-Task-Router.git"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

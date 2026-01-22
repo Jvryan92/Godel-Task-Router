@@ -205,7 +205,6 @@ class QualityScoringEngine {
   }
 }
 
-// ============================================================================
 // STANDALONE ANALYSIS FUNCTION
 // ============================================================================
 
@@ -285,9 +284,9 @@ function generateMarkdownReport(report) {
       if (file.issues.length > 0) {
         lines.push('**Issues:**');
         for (const issue of file.issues) {
-          const icon = issue.severity === 'critical' ? '!' :
-                       issue.severity === 'warning' ? '?' : 'i';
-          lines.push(`- [${icon}] ${issue.message}`);
+          const icon = issue.severity === 'critical' ? '[!]' :
+                       issue.severity === 'warning' ? '[?]' : '[i]';
+          lines.push(`- ${icon} ${issue.message}`);
         }
         lines.push('');
       }
