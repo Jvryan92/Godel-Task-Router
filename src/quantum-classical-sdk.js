@@ -1,6 +1,6 @@
 /**
- * GÖDEL TASK ROUTER - QUANTUM-CLASSICAL SDK
- * ==========================================
+ * GÖDEL TASK ROUTER - QUANTUM-CLASSICAL SDK v2.0
+ * ===============================================
  * Unified SDK for the first-to-market quantum-classical code analysis platform
  *
  * This SDK provides seamless integration of:
@@ -8,8 +8,15 @@
  * - Quantum-Classical Mesh (QCM) Integration Hub
  * - Swarm Flash Sync Engine (Distributed consensus)
  * - Gödel Number Signatures (Mathematical provenance)
+ * - Autonomous Agent Controller (GENESIS-locked autonomy)
+ * - Slack Integration (Command and webhook support)
  *
- * @version 1.0.0
+ * GENESIS Capsule Parameters (Locked):
+ * - Loops: 2025 | Dimensions: 12 | Branches: 24,300
+ * - Evolution Factor: 0.632121 | Quantum Potential: 0.999507
+ * - Coherence Threshold: ≥ 0.95 | PHI: 1.618033988749895
+ *
+ * @version 2.0.0
  * @author EpochCore Quantum Enterprise
  * @waterseal 40668c787c463ca5
  */
@@ -50,11 +57,34 @@ const {
   PHI_MULTIPLIERS
 } = require('./swarm-flash-sync');
 
+// Autonomous Agent Components
+const {
+  AutonomousAgent,
+  AutonomousAgentSwarm,
+  AutonomousController,
+  GenesisCapsuleValidator,
+  QSCLogStream,
+  createAutonomousController,
+  createAutonomousSwarm,
+  flashSyncAllNodes,
+  GENESIS_CAPSULE
+} = require('./autonomous-agent-controller');
+
+// Slack Integration
+const {
+  SlackCommandRouter,
+  SlackWebhookHandler,
+  SlackMessageFormatter,
+  createSlackCommandRouter,
+  createSlackWebhookHandler,
+  executeSlackCommand
+} = require('./slack-autonomous-integration');
+
 // ============================================================================
 // UNIFIED CONSTANTS
 // ============================================================================
 
-const SDK_VERSION = '1.0.0';
+const SDK_VERSION = '2.0.0';
 const PHI = 1.618033988749895;
 const RESONANCE_FREQ = 7777.77;
 const QUANTUM_SEAL = '40668c787c463ca5';
@@ -446,6 +476,45 @@ const COMPONENT_REGISTRY = {
     class: GodelSignatureGenerator,
     version: '1.0.0',
     description: 'Gödel number signature generator'
+  },
+
+  // Autonomous Agent Components (GENESIS-Locked)
+  AutonomousController: {
+    class: AutonomousController,
+    version: '1.0.0',
+    description: 'GENESIS-locked autonomous operation controller'
+  },
+  AutonomousAgentSwarm: {
+    class: AutonomousAgentSwarm,
+    version: '1.0.0',
+    description: '26-agent autonomous swarm with no-trust verification'
+  },
+  AutonomousAgent: {
+    class: AutonomousAgent,
+    version: '1.0.0',
+    description: 'Self-verifying autonomous agent'
+  },
+  GenesisCapsuleValidator: {
+    class: GenesisCapsuleValidator,
+    version: '1.0.0',
+    description: 'GENESIS capsule validation engine'
+  },
+  QSCLogStream: {
+    class: QSCLogStream,
+    version: '1.0.0',
+    description: 'Quantum State Chronicle log streaming'
+  },
+
+  // Slack Integration Components
+  SlackCommandRouter: {
+    class: SlackCommandRouter,
+    version: '1.0.0',
+    description: 'Slack command routing for autonomous agents'
+  },
+  SlackWebhookHandler: {
+    class: SlackWebhookHandler,
+    version: '1.0.0',
+    description: 'Slack webhook notification handler'
   }
 };
 
@@ -480,6 +549,25 @@ module.exports = {
   SwarmController,
   createSwarmController,
   runSwarmAnalysis,
+
+  // Autonomous Agent Components
+  AutonomousAgent,
+  AutonomousAgentSwarm,
+  AutonomousController,
+  GenesisCapsuleValidator,
+  QSCLogStream,
+  createAutonomousController,
+  createAutonomousSwarm,
+  flashSyncAllNodes,
+  GENESIS_CAPSULE,
+
+  // Slack Integration
+  SlackCommandRouter,
+  SlackWebhookHandler,
+  SlackMessageFormatter,
+  createSlackCommandRouter,
+  createSlackWebhookHandler,
+  executeSlackCommand,
 
   // Constants
   SDK_VERSION,
