@@ -1,14 +1,15 @@
 {
   "name": "godel-task-router",
-  "version": "3.2.0",
-  "description": "Quantum-Classical Code Analysis - 52-Agent Swarm + EPOCH1 AST + Flash Sync @ 7777.77Hz",
+  "version": "3.3.0",
+  "description": "Quantum-Classical Code Analysis - 52-Agent Swarm + EPOCH1 AST + Flash Sync @ 7777.77Hz + Blake3/SHA3 Signer",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js",
     "./sdk": "./src/quantum-classical-sdk.js",
     "./ast": "./src/epoch1-ast-analyzer.js",
     "./qcm": "./src/qcm-integration-hub.js",
-    "./swarm": "./src/swarm-flash-sync.js"
+    "./swarm": "./src/swarm-flash-sync.js",
+    "./signer": "./src/launch-kit-signer.js"
   },
   "scripts": {
     "build": "ncc build src/index.js -o dist",
@@ -28,7 +29,13 @@
     "godel",
     "watermark",
     "optimization",
-    "epoch1"
+    "epoch1",
+    "blake3",
+    "sha3",
+    "gpg",
+    "signing",
+    "cryptographic",
+    "launch-kit"
   ],
   "author": "EpochCore Quantum <quantum@epochcore.io>",
   "license": "MIT",

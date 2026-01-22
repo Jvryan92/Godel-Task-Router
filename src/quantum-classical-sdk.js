@@ -50,6 +50,22 @@ const {
   PHI_MULTIPLIERS
 } = require('./swarm-flash-sync');
 
+const {
+  Blake3Hasher,
+  TripleSHA3Hasher,
+  GPGKeyCapsule,
+  HashNode,
+  ParallelFlashSyncHasher,
+  CLxLKS,
+  createLaunchKitSigner,
+  quickSignArtifact,
+  flashSyncHashAllNodes,
+  BLAKE3_ROUNDS,
+  SHA3_TRIPLE_ITERATIONS,
+  SWARM_LAYERS,
+  ALL_NODES
+} = require('./launch-kit-signer');
+
 // ============================================================================
 // UNIFIED CONSTANTS
 // ============================================================================
@@ -446,6 +462,33 @@ const COMPONENT_REGISTRY = {
     class: GodelSignatureGenerator,
     version: '1.0.0',
     description: 'Gödel number signature generator'
+  },
+
+  // Launch Kit Signer Components
+  Blake3Hasher: {
+    class: Blake3Hasher,
+    version: '1.0.0',
+    description: 'Blake3-style cryptographic hash with mixing rounds'
+  },
+  TripleSHA3Hasher: {
+    class: TripleSHA3Hasher,
+    version: '1.0.0',
+    description: 'Triple SHA3 cascade (256→384→512) with PHI amplification'
+  },
+  GPGKeyCapsule: {
+    class: GPGKeyCapsule,
+    version: '1.0.0',
+    description: 'GPG-style key pair capsule with UUID'
+  },
+  ParallelFlashSyncHasher: {
+    class: ParallelFlashSyncHasher,
+    version: '1.0.0',
+    description: 'Parallel flash sync node hashing engine'
+  },
+  CLxLKS: {
+    class: CLxLKS,
+    version: '1.0.0',
+    description: 'Claude x Launch Kit Signer interface'
   }
 };
 
@@ -481,6 +524,17 @@ module.exports = {
   createSwarmController,
   runSwarmAnalysis,
 
+  // Launch Kit Signer Components
+  Blake3Hasher,
+  TripleSHA3Hasher,
+  GPGKeyCapsule,
+  HashNode,
+  ParallelFlashSyncHasher,
+  CLxLKS,
+  createLaunchKitSigner,
+  quickSignArtifact,
+  flashSyncHashAllNodes,
+
   // Constants
   SDK_VERSION,
   PHI,
@@ -488,6 +542,10 @@ module.exports = {
   QUANTUM_SEAL,
   CASCADE_LEVELS,
   PHI_MULTIPLIERS,
+  BLAKE3_ROUNDS,
+  SHA3_TRIPLE_ITERATIONS,
+  SWARM_LAYERS,
+  ALL_NODES,
 
   // Registry
   COMPONENT_REGISTRY
