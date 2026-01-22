@@ -66,6 +66,16 @@ inputs:
     required: false
     default: 'https://godel-task-router.com'
 
+  # PR Comments (v3.3)
+  pr-comments:
+    description: '[PRO] Post inline PR comments with findings and summary'
+    required: false
+    default: 'true'
+  github-token:
+    description: 'GitHub token for PR comments (uses GITHUB_TOKEN by default)'
+    required: false
+    default: '${{ github.token }}'
+
   # Quantum-Classical Mesh (v3.2)
   qcm-integration:
     description: '[PRO] Enable Quantum-Classical Mesh integration with 26-node swarm'
@@ -138,4 +148,4 @@ runs:
   using: 'node20'
   main: 'dist/index.js'
 
-# QUANTUM_WATERMARK: GÖDEL_SEAL=40668c787c463ca5 V=3.2 QCM=true FLASH_SYNC=7777.77Hz EPOCH=2026-01-22
+# QUANTUM_WATERMARK: GÖDEL_SEAL=40668c787c463ca5 V=3.3 QCM=true FLASH_SYNC=7777.77Hz PR_COMMENTS=true EPOCH=2026-01-22

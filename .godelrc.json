@@ -1,0 +1,127 @@
+{
+  "$schema": "https://godel-task-router.com/schema/v3.3.json",
+  "version": "3.3",
+  "name": "Godel Task Router Configuration",
+  "description": "Consumer-ready configuration for quantum-classical code analysis",
+
+  "mode": "standard",
+  "tier": "community",
+
+  "features": {
+    "autoFix": true,
+    "securityScan": true,
+    "optimize": false,
+    "compress": false,
+    "watermark": false,
+    "auditDeps": false,
+    "swarmReview": true,
+    "qcmIntegration": true,
+    "flashSync": true,
+    "phiAmplification": true,
+    "epoch1Ast": true,
+    "prComments": true
+  },
+
+  "swarm": {
+    "agentCount": 8,
+    "nodeCount": 26,
+    "consensusAlgorithm": "phi_weighted",
+    "resonanceThreshold": 0.8,
+    "layers": {
+      "infrastructure": ["A", "B", "C", "D", "E", "F"],
+      "application": ["G", "H", "I", "J", "K", "L", "M"],
+      "intelligence": ["N", "O", "P", "Q", "R", "S"],
+      "orchestration": ["T", "U", "V", "W"],
+      "quantum": ["X", "Y", "Z"]
+    }
+  },
+
+  "flashSync": {
+    "enabled": true,
+    "resonanceFrequency": 7777.77,
+    "cascadeLevels": ["micro", "meso", "macro", "meta"],
+    "cascadeDelay": 10
+  },
+
+  "quantum": {
+    "phiAmplification": true,
+    "phi": 1.618033988749895,
+    "coherenceThreshold": 0.85,
+    "quantumSeal": "40668c787c463ca5"
+  },
+
+  "analysis": {
+    "maxFiles": 100,
+    "maxFileSize": 1048576,
+    "excludePatterns": [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      "vendor/**",
+      "*.min.js",
+      "*.min.css",
+      ".git/**"
+    ],
+    "includePatterns": [
+      "**/*.js",
+      "**/*.ts",
+      "**/*.jsx",
+      "**/*.tsx",
+      "**/*.py",
+      "**/*.go",
+      "**/*.rs",
+      "**/*.java",
+      "**/*.rb",
+      "**/*.php",
+      "**/*.c",
+      "**/*.cpp",
+      "**/*.sol"
+    ]
+  },
+
+  "security": {
+    "failOnCritical": true,
+    "failOnWarning": false,
+    "autoFixSecrets": true,
+    "autoFixEval": true,
+    "autoFixXss": true,
+    "detectPatterns": [
+      "hardcoded_secrets",
+      "sql_injection",
+      "command_injection",
+      "xss",
+      "eval_usage"
+    ]
+  },
+
+  "thresholds": {
+    "passScore": 70,
+    "warningScore": 85,
+    "excellentScore": 95,
+    "minCoherence": 0.7,
+    "minConsensus": 0.5
+  },
+
+  "output": {
+    "format": "github",
+    "prComments": true,
+    "summaryReport": true,
+    "jsonExport": false,
+    "sarifExport": false
+  },
+
+  "tiers": {
+    "community": {
+      "agents": 8,
+      "features": ["autoFix", "securityScan", "swarmReview", "qcmIntegration"]
+    },
+    "pro": {
+      "agents": 26,
+      "features": ["autoFix", "securityScan", "optimize", "compress", "watermark", "auditDeps", "swarmReview", "qcmIntegration", "flashSync", "phiAmplification", "epoch1Ast", "prComments"]
+    },
+    "enterprise": {
+      "agents": 52,
+      "features": ["all", "awsBedrock", "awsSecurityHub", "customEndpoint", "sarif", "webhooks"]
+    }
+  }
+}

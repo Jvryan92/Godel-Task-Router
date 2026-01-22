@@ -86,7 +86,7 @@ class EPOCH1ASTAnalyzer {
   calculateMaintainability(content, complexity) {
     const lines = content.split('\n');
     const loc = lines.length;
-    const comments = (content.match(/\/\/.*|/\*[\s\S]*?\*\//g) || []).length;
+    const comments = (content.match(/\/\/.*|\/\*[\s\S]*?\*\//g) || []).length;
     const commentRatio = comments / Math.max(1, loc);
     let maintainability = 171 - 5.2 * Math.log(complexity) - 0.23 * complexity - 16.2 * Math.log(loc);
     maintainability = Math.max(0, Math.min(100, maintainability));
