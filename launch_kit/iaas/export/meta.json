@@ -1,0 +1,16 @@
+[
+  {
+    "category": "iaas",
+    "name": "AlloyARM",
+    "slug": "alloyarm",
+    "domain": "alloyarm.com",
+    "palette": [
+      "#706323",
+      "#632370",
+      "#237063"
+    ],
+    "fonts": "Inter/SF Pro",
+    "pitch": "Compute, storage, and networking on demand.",
+    "date": "2026-01-21\niaas"
+  }
+]

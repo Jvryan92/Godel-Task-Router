@@ -1,0 +1,16 @@
+[
+  {
+    "category": "saas",
+    "name": "AirAI",
+    "slug": "airai",
+    "domain": "airai.com",
+    "palette": [
+      "#46ec17",
+      "#ec1746",
+      "#1746ec"
+    ],
+    "fonts": "Inter/SF Pro",
+    "pitch": "Launch, grow, and automate in minutes.",
+    "date": "2026-01-21\nsaas"
+  }
+]
