@@ -1,5 +1,5 @@
 name: 'Gödel Task Router'
-description: 'AI Code Review with Auto-Fix, Watermarking & Optimization. Free tier available.'
+description: 'Quantum-Classical Code Analysis with 52-Agent Swarm, EPOCH1 AST, Flash Sync @ 7777.77Hz'
 author: 'EpochCore Quantum - AWS Partner (S-0084812)'
 branding:
   icon: 'cpu'
@@ -66,6 +66,24 @@ inputs:
     required: false
     default: 'https://godel-task-router.com'
 
+  # Quantum-Classical Mesh (v3.2)
+  qcm-integration:
+    description: '[PRO] Enable Quantum-Classical Mesh integration with 26-node swarm'
+    required: false
+    default: 'true'
+  flash-sync:
+    description: '[PRO] Enable Flash Sync Protocol @ 7777.77Hz resonance'
+    required: false
+    default: 'true'
+  phi-amplification:
+    description: '[PRO] Enable PHI (1.618) golden ratio amplification'
+    required: false
+    default: 'true'
+  epoch1-ast:
+    description: '[PRO] Enable EPOCH1 AST deep code analysis'
+    required: false
+    default: 'true'
+
   # AWS Integration (Enterprise)
   aws-bedrock:
     description: '[ENTERPRISE] Use AWS Bedrock Claude 3 for AI review'
@@ -102,8 +120,22 @@ outputs:
   report-url:
     description: 'URL to detailed report'
 
+  # QCM Outputs (v3.2)
+  qcm-score:
+    description: 'Quantum-Classical Mesh unified score (0-100)'
+  quantum-coherence:
+    description: 'Quantum state coherence (0.0-1.0)'
+  swarm-nodes-active:
+    description: 'Number of active swarm nodes (0-26)'
+  flash-sync-status:
+    description: 'Flash Sync status (SYNCED/PARTIAL/RESONANCE)'
+  godel-signature:
+    description: 'Gödel number signature for provenance'
+  epoch1-ast-score:
+    description: 'EPOCH1 AST analysis score (0-100)'
+
 runs:
   using: 'node20'
   main: 'dist/index.js'
 
-# QUANTUM_WATERMARK: GÖDEL_SEAL=40668c787c463ca5 V=3.0 ROUTER=true EPOCH=2026-01-09
+# QUANTUM_WATERMARK: GÖDEL_SEAL=40668c787c463ca5 V=3.2 QCM=true FLASH_SYNC=7777.77Hz EPOCH=2026-01-22

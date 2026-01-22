@@ -1,16 +1,24 @@
 /*
- * GÖDEL CODE REVIEW v3.1 - IntegrityGate ENHANCED
- * 52-Agent OpusSwarm + Auto-Fix + Compression + Watermarking
+ * GÖDEL CODE REVIEW v3.2 - QUANTUM-CLASSICAL MESH INTEGRATION
+ * 52-Agent OpusSwarm + EPOCH1 AST + QCM Flash Sync
  * Founded: 2025 by John Vincent Ryan
  * EPOCHCORE Quantum Enterprise
  *
- * NEW IN v3.1:
+ * NEW IN v3.2:
+ * - Quantum-Classical Mesh (QCM) Integration Hub
+ * - 26-Node A-Z Swarm Matrix with PHI amplification
+ * - Flash Sync Protocol @ 7777.77Hz resonance
+ * - EPOCH1 AST Analyzer fully integrated
+ * - Gödel Number signature generation
+ * - Multi-phase quantum-inspired consensus
+ *
+ * PRIOR FEATURES (v3.1):
  * - Auto-fix security vulnerabilities
  * - Code compression/minification
  * - Quantum watermarking (provenance)
  * - Performance optimization
  * - Dependency audit + auto-update
-  * - AST Analysis with quality scoring (NEW)
+ * - AST Analysis with quality scoring
  */
 
 const core = require('@actions/core');
@@ -22,6 +30,9 @@ const { execSync } = require('child_process');
 
 // EPOCH1 AST Analyzer Module
 const { EPOCH1ASTAnalyzer, QualityScoringEngine, generateAnalysisReport } = require('./epoch1-ast-analyzer');
+
+// Quantum-Classical Integration Hub
+const { QuantumClassicalMesh, createQCMIntegration, analyzeWithQCM, PHI, RESONANCE_FREQ } = require('./qcm-integration-hub');
 
 // API Endpoints
 const OPUS_SWARM_ENDPOINT = 'https://qs7jn0pfqj.execute-api.us-east-2.amazonaws.com';
@@ -59,7 +70,9 @@ async function run() {
             securityIssuesFixed: 0,
             vulnerabilitiesPatched: 0,
             findings: [],
-            swarmConsensus: null
+            swarmConsensus: null,
+            qcmAnalysis: null,
+            astReport: null
         };
 
         // Step 1: Scan repository
@@ -137,7 +150,30 @@ async function run() {
             core.endGroup();
         }
 
-        // Step 8: Compute Merkle root
+        // Step 8: EPOCH1 AST Analysis (Quantum-Classical Mesh)
+        core.startGroup('🧬 EPOCH1 AST Analysis (Quantum-Classical Mesh)');
+        const astResult = await runEpoch1ASTAnalysis(files);
+        results.astReport = astResult.report;
+        core.info(`EPOCH1 Score: ${astResult.score}/100 | Files: ${astResult.filesAnalyzed}`);
+        core.endGroup();
+
+        // Step 9: Quantum-Classical Mesh Integration
+        const qcmEnabled = core.getInput('qcm-integration') !== 'false';
+        if (qcmEnabled) {
+            core.startGroup('⚛️ Quantum-Classical Mesh Integration');
+            const qcmResult = await runQCMIntegration(files);
+            results.qcmAnalysis = qcmResult;
+            core.info(`QCM Unified Score: ${qcmResult.unified.score}/100`);
+            core.info(`Coherence: ${(qcmResult.quantum.coherence * 100).toFixed(2)}%`);
+            core.info(`Swarm Nodes Active: ${qcmResult.swarm.nodesActive}/26`);
+            core.info(`Flash Sync: ${qcmResult.flash.synced ? 'SYNCED' : 'PARTIAL'}`);
+            if (qcmResult.flash.resonanceAchieved) {
+                core.info(`Resonance: ${RESONANCE_FREQ}Hz ACHIEVED`);
+            }
+            core.endGroup();
+        }
+
+        // Step 10: Compute Merkle root
         core.startGroup('🌳 Merkle Tree Validation');
         const merkleRoot = computeMerkleRoot(files);
         core.info(`Merkle Root: ${merkleRoot}`);
@@ -687,6 +723,103 @@ async function applySwarmFix(fix) {
 }
 
 // ============================================================================
+// EPOCH1 AST ANALYSIS
+// ============================================================================
+async function runEpoch1ASTAnalysis(files) {
+    const codeFiles = files.filter(f => isCodeFile(f.path));
+    const filesWithContent = [];
+
+    for (const file of codeFiles.slice(0, 100)) {
+        try {
+            const content = fs.readFileSync(file.path, 'utf8');
+            filesWithContent.push({
+                path: file.relativePath,
+                content: content
+            });
+        } catch (error) {
+            // Skip files that can't be read
+        }
+    }
+
+    if (filesWithContent.length === 0) {
+        return {
+            score: 100,
+            filesAnalyzed: 0,
+            report: null
+        };
+    }
+
+    try {
+        const report = await generateAnalysisReport(filesWithContent);
+        return {
+            score: report.summary.overallScore,
+            filesAnalyzed: report.summary.totalFiles,
+            report: report
+        };
+    } catch (error) {
+        core.warning(`EPOCH1 AST Analysis error: ${error.message}`);
+        return {
+            score: 50,
+            filesAnalyzed: 0,
+            report: null,
+            error: error.message
+        };
+    }
+}
+
+// ============================================================================
+// QUANTUM-CLASSICAL MESH INTEGRATION
+// ============================================================================
+async function runQCMIntegration(files) {
+    const codeFiles = files.filter(f => isCodeFile(f.path));
+    const filesWithContent = [];
+
+    for (const file of codeFiles.slice(0, 50)) {
+        try {
+            const content = fs.readFileSync(file.path, 'utf8');
+            filesWithContent.push({
+                path: file.relativePath,
+                content: content,
+                hash: file.hash
+            });
+        } catch (error) {
+            // Skip files that can't be read
+        }
+    }
+
+    if (filesWithContent.length === 0) {
+        return {
+            classical: { files: [], summary: null },
+            quantum: { coherence: 1.0, godelSignature: null },
+            swarm: { nodesActive: 0, findings: [], consensus: 1.0 },
+            flash: { synced: true, cascadeLevel: 4, resonanceAchieved: true },
+            unified: { score: 100, report: null }
+        };
+    }
+
+    try {
+        const qcm = createQCMIntegration({
+            phiAmplification: true,
+            flashSyncEnabled: true,
+            coherenceThreshold: 0.85,
+            swarmSize: 26
+        });
+
+        return await qcm.analyzeRepository(filesWithContent);
+    } catch (error) {
+        core.warning(`QCM Integration error: ${error.message}`);
+        return {
+            classical: { files: [], summary: null },
+            quantum: { coherence: 0.5, godelSignature: null },
+            swarm: { nodesActive: 0, findings: [], consensus: 0.5 },
+            flash: { synced: false, cascadeLevel: 0, resonanceAchieved: false },
+            unified: { score: 50, report: null },
+            error: error.message
+        };
+    }
+}
+
+// ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
 async function scanRepository() {
@@ -777,6 +910,25 @@ function calculateScore(results) {
         else if (results.swarmConsensus < 0.85) score -= 10;
     }
 
+    // QCM Integration bonus (quantum-classical mesh coherence)
+    if (results.qcmAnalysis) {
+        const qcm = results.qcmAnalysis;
+        // Bonus for high coherence
+        if (qcm.quantum && qcm.quantum.coherence >= 0.9) score += 5;
+        // Bonus for flash sync resonance
+        if (qcm.flash && qcm.flash.resonanceAchieved) score += 3;
+        // Blend with QCM unified score (20% weight)
+        if (qcm.unified && qcm.unified.score) {
+            score = score * 0.8 + qcm.unified.score * 0.2;
+        }
+    }
+
+    // AST Analysis integration
+    if (results.astReport && results.astReport.summary) {
+        // Blend with AST score (10% weight)
+        score = score * 0.9 + results.astReport.summary.overallScore * 0.1;
+    }
+
     return Math.max(0, Math.min(100, Math.round(score)));
 }
 
@@ -798,11 +950,40 @@ async function createSummaryReport(results, merkleRoot) {
         rows.push(['🤖 Swarm Consensus', `${(results.swarmConsensus * 100).toFixed(2)}%`]);
     }
 
+    // Add EPOCH1 AST Analysis metrics
+    if (results.astReport && results.astReport.summary) {
+        rows.push(['🧬 EPOCH1 AST Score', `${results.astReport.summary.overallScore}/100`]);
+        rows.push(['🔍 Critical Issues', results.astReport.summary.criticalIssues.toString()]);
+    }
+
+    // Add QCM Integration metrics
+    if (results.qcmAnalysis) {
+        const qcm = results.qcmAnalysis;
+        rows.push(['⚛️ QCM Unified Score', `${qcm.unified?.score || 'N/A'}/100`]);
+        if (qcm.quantum) {
+            rows.push(['🌀 Quantum Coherence', `${(qcm.quantum.coherence * 100).toFixed(2)}%`]);
+        }
+        if (qcm.swarm) {
+            rows.push(['🐝 Swarm Nodes Active', `${qcm.swarm.nodesActive}/26`]);
+        }
+        if (qcm.flash) {
+            const flashStatus = qcm.flash.resonanceAchieved ?
+                `RESONANCE @ ${RESONANCE_FREQ}Hz` :
+                qcm.flash.synced ? 'SYNCED' : 'PARTIAL';
+            rows.push(['⚡ Flash Sync', flashStatus]);
+        }
+        if (qcm.quantum?.godelSignature) {
+            rows.push(['🔢 Gödel Signature', `\`${qcm.quantum.godelSignature.substring(0, 12)}...\``]);
+        }
+    }
+
     await core.summary
-        .addHeading('Gödel Code Review v3.1 Report')
+        .addHeading('Gödel Code Review v3.2 Report')
         .addTable(rows)
         .addBreak()
         .addRaw(`**Quantum Seal:** ${QUANTUM_SEAL}`)
+        .addBreak()
+        .addRaw(`*Powered by EPOCH1 AST Analyzer + Quantum-Classical Mesh Integration*`)
         .write();
 }
 

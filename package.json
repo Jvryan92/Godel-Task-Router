@@ -1,8 +1,15 @@
 {
-  "name": "godel-code-review",
-  "version": "3.0.0",
-  "description": "52-Agent AI Code Review with Auto-Fix, Compression, Watermarking & Optimization",
+  "name": "godel-task-router",
+  "version": "3.2.0",
+  "description": "Quantum-Classical Code Analysis - 52-Agent Swarm + EPOCH1 AST + Flash Sync @ 7777.77Hz",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./sdk": "./src/quantum-classical-sdk.js",
+    "./ast": "./src/epoch1-ast-analyzer.js",
+    "./qcm": "./src/qcm-integration-hub.js",
+    "./swarm": "./src/swarm-flash-sync.js"
+  },
   "scripts": {
     "build": "ncc build src/index.js -o dist",
     "test": "jest",
@@ -14,8 +21,14 @@
     "ai",
     "security",
     "quantum",
+    "quantum-classical",
+    "swarm-intelligence",
+    "flash-sync",
+    "ast-analysis",
+    "godel",
     "watermark",
-    "optimization"
+    "optimization",
+    "epoch1"
   ],
   "author": "EpochCore Quantum <quantum@epochcore.io>",
   "license": "MIT",
