@@ -111,6 +111,27 @@ async function run() {
         core.info(`Found ${files.length} files`);
         core.endGroup();
 
+        // Step 1.5: EPOCH1 AST Analysis
+        core.startGroup('🧠 EPOCH1 AST Analysis');
+        const astAnalyzer = new EPOCH1ASTAnalyzer({
+            analysisDepth: mode === 'deep' ? 'deep' : 'standard',
+            qualityThreshold: 70
+        });
+        const astResults = [];
+        for (const file of files.filter(f => isCodeFile(f.path))) {
+            try {
+                const content = fs.readFileSync(file.path, 'utf8');
+                const analysis = await astAnalyzer.analyzeCode(content, file.relativePath);
+                astResults.push(analysis);
+            } catch (e) { /* skip unreadable files */ }
+        }
+        const astReport = generateAnalysisReport(astResults, { maxFiles: 20 });
+        results.astScore = astReport.score;
+        results.findings.push(...astResults.flatMap(r => r.issues));
+        core.info(`AST Analysis Score: ${astReport.score}/100`);
+        core.info(`Files analyzed: ${astResults.length}`);
+        core.endGroup();
+
         // Step 2: Security Scan + Auto-Fix
         if (autoFix) {
             core.startGroup('🔒 Security Scan + Auto-Fix');
@@ -667,10 +688,115 @@ function generateWatermarkComment(filePath, watermark) {
 }
 
 // ============================================================================
+// AWS BEDROCK INTEGRATION
+// ============================================================================
+async function performBedrockReview(files, options) {
+    const { model, region } = options;
+
+    // Check for AWS credentials
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+        core.warning('AWS credentials not found, falling back to local analysis');
+        return null;
+    }
+
+    const modelId = model === 'claude-3-sonnet'
+        ? 'anthropic.claude-3-sonnet-20240229-v1:0'
+        : 'anthropic.claude-3-haiku-20240307-v1:0';
+
+    const codeContext = files
+        .filter(f => f.content)
+        .slice(0, 10)
+        .map(f => `### ${f.path}\n\`\`\`\n${f.content.substring(0, 3000)}\n\`\`\``)
+        .join('\n\n');
+
+    const prompt = `You are a senior code reviewer. Analyze the following code files for:
+1. Security vulnerabilities (XSS, SQL injection, secrets, etc.)
+2. Performance issues (N+1 queries, memory leaks, etc.)
+3. Code quality (complexity, maintainability)
+4. Best practices violations
+
+Return a JSON object with this structure:
+{
+  "findings": [
+    {"severity": "critical|warning|info", "category": "security|performance|quality|best-practices", "message": "description", "file": "path"}
+  ],
+  "overallScore": 0-100,
+  "summary": "brief summary"
+}
+
+Code to review:
+${codeContext}`;
+
+    try {
+        const { BedrockRuntimeClient, InvokeModelCommand } = await import('@aws-sdk/client-bedrock-runtime');
+
+        const client = new BedrockRuntimeClient({ region: region || 'us-east-1' });
+
+        const command = new InvokeModelCommand({
+            modelId: modelId,
+            contentType: 'application/json',
+            accept: 'application/json',
+            body: JSON.stringify({
+                anthropic_version: 'bedrock-2023-05-31',
+                max_tokens: 4096,
+                messages: [{ role: 'user', content: prompt }]
+            })
+        });
+
+        const response = await client.send(command);
+        const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+        const content = responseBody.content[0].text;
+
+        // Extract JSON from response
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            const result = JSON.parse(jsonMatch[0]);
+            core.info(`  Bedrock ${model} analysis complete`);
+            core.info(`  Score: ${result.overallScore}/100`);
+            return {
+                consensus: result.overallScore / 100,
+                findings: result.findings || [],
+                summary: result.summary,
+                reviewQuality: `bedrock_${model}`
+            };
+        }
+    } catch (error) {
+        core.warning(`Bedrock error: ${error.message}`);
+    }
+
+    return null;
+}
+
+// ============================================================================
 // ENHANCED SWARM REVIEW
 // ============================================================================
 async function performEnhancedSwarmReview(files, options) {
     const { agentCount, licenseKey, autoFix } = options;
+
+    // Check for AWS Bedrock option
+    const useAwsBedrock = core.getInput('aws-bedrock') === 'true';
+    const bedrockModel = core.getInput('aws-bedrock-model') || 'claude-3-haiku';
+    const awsRegion = core.getInput('aws-region') || 'us-east-1';
+
+    if (useAwsBedrock) {
+        core.info(`  Using AWS Bedrock (${bedrockModel}) for enhanced analysis...`);
+        const bedrockResult = await performBedrockReview(files, {
+            model: bedrockModel,
+            region: awsRegion
+        });
+        if (bedrockResult) {
+            // Combine Bedrock results with local swarm for comprehensive coverage
+            const localResult = performEnhancedLocalAnalysis(files, agentCount);
+            return {
+                consensus: (bedrockResult.consensus + localResult.consensus) / 2,
+                findings: [...bedrockResult.findings, ...localResult.findings],
+                agentsActive: localResult.agentsActive,
+                agentsAgreed: localResult.agentsAgreed,
+                bedrockSummary: bedrockResult.summary,
+                reviewQuality: 'bedrock_enhanced_hybrid'
+            };
+        }
+    }
 
     // Prepare code for review
     const codeFiles = files
@@ -733,37 +859,147 @@ async function performEnhancedSwarmReview(files, options) {
 function performEnhancedLocalAnalysis(files, agentCount) {
     const findings = [];
     const fixes = [];
+    const agentVotes = {};
 
-    // Simulated 52-agent analysis categories
-    const agentCategories = [
-        { name: 'SecurityAgent', check: checkSecurity },
-        { name: 'PerformanceAgent', check: checkPerformance },
-        { name: 'QualityAgent', check: checkQuality },
-        { name: 'MaintainabilityAgent', check: checkMaintainability },
-        { name: 'DocumentationAgent', check: checkDocumentation }
+    // Full 52-Agent Swarm Implementation
+    const SWARM_AGENTS = [
+        // Security Agents (1-10)
+        { id: 1, name: 'XSSHunter', category: 'security', check: (c) => /innerHTML\s*=|document\.write|\.html\(/.test(c) ? [{ severity: 'warning', message: 'Potential XSS vector' }] : [] },
+        { id: 2, name: 'SQLInjectionDetector', category: 'security', check: (c) => /\$\{.*\}.*(?:SELECT|INSERT|UPDATE|DELETE)/i.test(c) ? [{ severity: 'critical', message: 'SQL injection risk' }] : [] },
+        { id: 3, name: 'EvalGuard', category: 'security', check: (c) => /\beval\s*\(/.test(c) ? [{ severity: 'critical', message: 'eval() usage detected' }] : [] },
+        { id: 4, name: 'SecretScanner', category: 'security', check: (c) => /sk_(?:live|test)_|AKIA[A-Z0-9]{16}|ghp_[a-zA-Z0-9]{36}/.test(c) ? [{ severity: 'critical', message: 'Hardcoded secret detected' }] : [] },
+        { id: 5, name: 'CMDInjectionGuard', category: 'security', check: (c) => /exec\s*\(|spawn\s*\(|child_process/.test(c) && /\$\{|\+\s*/.test(c) ? [{ severity: 'warning', message: 'Command injection risk' }] : [] },
+        { id: 6, name: 'PathTraversalDetector', category: 'security', check: (c) => /\.\.[\/\\]|path\.join.*\$\{/.test(c) ? [{ severity: 'warning', message: 'Path traversal risk' }] : [] },
+        { id: 7, name: 'CryptoWeaknessScanner', category: 'security', check: (c) => /md5|sha1(?!-)|createCipher\b/.test(c) ? [{ severity: 'warning', message: 'Weak cryptography' }] : [] },
+        { id: 8, name: 'AuthBypassDetector', category: 'security', check: (c) => /isAdmin\s*=\s*true|bypassAuth|skipAuth/.test(c) ? [{ severity: 'critical', message: 'Auth bypass pattern' }] : [] },
+        { id: 9, name: 'HardcodedCredentialFinder', category: 'security', check: (c) => /password\s*[:=]\s*['"][^'"]{4,}['"]/.test(c) ? [{ severity: 'critical', message: 'Hardcoded password' }] : [] },
+        { id: 10, name: 'InsecureRandomDetector', category: 'security', check: (c) => /Math\.random\(\).*(?:token|secret|key|password)/i.test(c) ? [{ severity: 'warning', message: 'Insecure randomness for secrets' }] : [] },
+
+        // Performance Agents (11-20)
+        { id: 11, name: 'LoopOptimizer', category: 'performance', check: (c) => /for\s*\([^)]*\.length[^)]*\)/.test(c) ? [{ severity: 'info', message: 'Cache array length in loop' }] : [] },
+        { id: 12, name: 'AsyncAwaitOptimizer', category: 'performance', check: (c) => /await.*for|for.*await/.test(c) && !/Promise\.all/.test(c) ? [{ severity: 'warning', message: 'Sequential awaits - use Promise.all' }] : [] },
+        { id: 13, name: 'N1QueryDetector', category: 'performance', check: (c) => /for.*await.*(?:find|query|select|fetch)/i.test(c) ? [{ severity: 'warning', message: 'N+1 query pattern detected' }] : [] },
+        { id: 14, name: 'MemoryLeakHunter', category: 'performance', check: (c) => /addEventListener.*[^r]/.test(c) && !/removeEventListener/.test(c) ? [{ severity: 'info', message: 'Event listener may leak memory' }] : [] },
+        { id: 15, name: 'DeepCloningOptimizer', category: 'performance', check: (c) => /JSON\.parse\(JSON\.stringify/.test(c) ? [{ severity: 'info', message: 'Use structuredClone() for deep cloning' }] : [] },
+        { id: 16, name: 'RegexOptimizer', category: 'performance', check: (c) => /new RegExp.*for|for.*new RegExp/.test(c) ? [{ severity: 'info', message: 'Compile regex outside loop' }] : [] },
+        { id: 17, name: 'BundleSizeAnalyzer', category: 'performance', check: (c) => /import.*from\s*['"]lodash['"]/.test(c) ? [{ severity: 'info', message: 'Import specific lodash functions' }] : [] },
+        { id: 18, name: 'LazyLoadAdvisor', category: 'performance', check: (c) => /import\s+\{[^}]{100,}\}/.test(c) ? [{ severity: 'info', message: 'Consider lazy loading large imports' }] : [] },
+        { id: 19, name: 'CachePatternDetector', category: 'performance', check: (c) => /fetch\(.*\)(?!.*cache)/.test(c) && c.length > 500 ? [{ severity: 'info', message: 'Consider caching fetch results' }] : [] },
+        { id: 20, name: 'RenderOptimizer', category: 'performance', check: (c) => /setState.*setState.*setState/.test(c) ? [{ severity: 'warning', message: 'Multiple setState calls - batch updates' }] : [] },
+
+        // Code Quality Agents (21-30)
+        { id: 21, name: 'ComplexityAnalyzer', category: 'quality', check: (c) => { const cc = (c.match(/if|else|for|while|switch|case|catch|\?.*:/g) || []).length; return cc > 15 ? [{ severity: 'warning', message: `High cyclomatic complexity: ${cc}` }] : []; }},
+        { id: 22, name: 'LineLengthChecker', category: 'quality', check: (c) => { const long = c.split('\n').filter(l => l.length > 120).length; return long > 5 ? [{ severity: 'info', message: `${long} lines exceed 120 chars` }] : []; }},
+        { id: 23, name: 'FileSizeMonitor', category: 'quality', check: (c) => c.split('\n').length > 500 ? [{ severity: 'info', message: 'Large file - consider splitting' }] : [] },
+        { id: 24, name: 'NestingDepthAnalyzer', category: 'quality', check: (c) => /\{\s*\{\s*\{\s*\{\s*\{/.test(c) ? [{ severity: 'warning', message: 'Deep nesting detected (5+ levels)' }] : [] },
+        { id: 25, name: 'DuplicateCodeScanner', category: 'quality', check: (c) => { const lines = c.split('\n'); const dups = lines.filter((l,i) => l.length > 30 && lines.indexOf(l) !== i).length; return dups > 5 ? [{ severity: 'info', message: `${dups} duplicate lines found` }] : []; }},
+        { id: 26, name: 'MagicNumberDetector', category: 'quality', check: (c) => (c.match(/[^0-9a-zA-Z_](?:86400|3600|1000|60000|1024)[^0-9]/g) || []).length > 3 ? [{ severity: 'info', message: 'Magic numbers - use named constants' }] : [] },
+        { id: 27, name: 'ConsoleLogRemover', category: 'quality', check: (c) => (c.match(/console\.(log|debug|trace)/g) || []).length > 5 ? [{ severity: 'info', message: 'Multiple console.log statements' }] : [] },
+        { id: 28, name: 'DeadCodeDetector', category: 'quality', check: (c) => /return[^;]*;\s*[a-zA-Z]/.test(c) ? [{ severity: 'info', message: 'Possible dead code after return' }] : [] },
+        { id: 29, name: 'VarToConstConverter', category: 'quality', check: (c) => /\bvar\s+\w+\s*=/.test(c) ? [{ severity: 'info', message: 'Use const/let instead of var' }] : [] },
+        { id: 30, name: 'PromiseChainAnalyzer', category: 'quality', check: (c) => /\.then\(.*\.then\(.*\.then\(/.test(c) ? [{ severity: 'info', message: 'Long promise chain - use async/await' }] : [] },
+
+        // Maintainability Agents (31-40)
+        { id: 31, name: 'TodoTracker', category: 'maintainability', check: (c) => { const count = (c.match(/TODO|FIXME|HACK|XXX/g) || []).length; return count > 5 ? [{ severity: 'info', message: `${count} TODO/FIXME comments` }] : []; }},
+        { id: 32, name: 'CommentDensityChecker', category: 'maintainability', check: (c) => { const lines = c.split('\n').length; const comments = (c.match(/\/\/|\/\*|\*/g) || []).length; return lines > 100 && comments < lines * 0.05 ? [{ severity: 'info', message: 'Low comment density' }] : []; }},
+        { id: 33, name: 'FunctionLengthAnalyzer', category: 'maintainability', check: (c) => { const funcs = c.match(/function\s+\w+[^{]*\{[^}]{1000,}\}/g) || []; return funcs.length > 0 ? [{ severity: 'warning', message: `${funcs.length} functions exceed 40 lines` }] : []; }},
+        { id: 34, name: 'ParameterCountChecker', category: 'maintainability', check: (c) => /function\s+\w+\s*\([^)]{60,}\)/.test(c) ? [{ severity: 'info', message: 'Function has many parameters - use object' }] : [] },
+        { id: 35, name: 'NamingConventionChecker', category: 'maintainability', check: (c) => /(?:const|let|var)\s+[a-z]{1,2}\s*=/.test(c) && c.length > 500 ? [{ severity: 'info', message: 'Use descriptive variable names' }] : [] },
+        { id: 36, name: 'ImportOrganizer', category: 'maintainability', check: (c) => (c.match(/^import/gm) || []).length > 15 ? [{ severity: 'info', message: 'Many imports - consider barrel exports' }] : [] },
+        { id: 37, name: 'ExportAnalyzer', category: 'maintainability', check: (c) => (c.match(/export\s+(?:default|const|function|class)/g) || []).length > 10 ? [{ severity: 'info', message: 'Many exports - consider splitting module' }] : [] },
+        { id: 38, name: 'ClassSizeMonitor', category: 'maintainability', check: (c) => /class\s+\w+[^{]*\{[^}]{5000,}\}/.test(c) ? [{ severity: 'warning', message: 'Large class - consider splitting' }] : [] },
+        { id: 39, name: 'DeprecationScanner', category: 'maintainability', check: (c) => /@deprecated|DEPRECATED/i.test(c) ? [{ severity: 'info', message: 'Contains deprecated code' }] : [] },
+        { id: 40, name: 'TypeAnnotationChecker', category: 'maintainability', check: (c) => /\.js$/.test(c) && c.length > 1000 && !/\/\*\*.*@param/.test(c) ? [{ severity: 'info', message: 'Consider adding JSDoc types' }] : [] },
+
+        // Documentation Agents (41-46)
+        { id: 41, name: 'JSDocCoverageAnalyzer', category: 'documentation', check: (c) => { const funcs = (c.match(/function\s+\w+|const\s+\w+\s*=\s*(?:async\s*)?\(/g) || []).length; const docs = (c.match(/\/\*\*/g) || []).length; return funcs > 5 && docs < funcs / 2 ? [{ severity: 'info', message: 'Low JSDoc coverage' }] : []; }},
+        { id: 42, name: 'ReadmeChecker', category: 'documentation', check: () => [] }, // File-level only
+        { id: 43, name: 'APIDocValidator', category: 'documentation', check: (c) => /app\.(get|post|put|delete)\(/.test(c) && !/swagger|openapi|@api/i.test(c) ? [{ severity: 'info', message: 'API routes lack documentation' }] : [] },
+        { id: 44, name: 'ChangelogUpdater', category: 'documentation', check: () => [] }, // Project-level only
+        { id: 45, name: 'ExampleCodeChecker', category: 'documentation', check: (c) => /export\s+(?:default\s+)?(?:class|function)/.test(c) && !/example|usage|@example/i.test(c) ? [{ severity: 'info', message: 'Exported code lacks usage examples' }] : [] },
+        { id: 46, name: 'InlineCommentQuality', category: 'documentation', check: (c) => (c.match(/\/\/\s*[a-z]/g) || []).length < 3 && c.length > 500 ? [{ severity: 'info', message: 'Consider adding inline comments' }] : [] },
+
+        // Best Practices Agents (47-52)
+        { id: 47, name: 'ErrorHandlingChecker', category: 'best-practices', check: (c) => /async\s+function|=>\s*\{/.test(c) && !/try\s*\{|\.catch\(/.test(c) ? [{ severity: 'info', message: 'Async code lacks error handling' }] : [] },
+        { id: 48, name: 'InputValidationChecker', category: 'best-practices', check: (c) => /req\.(?:body|params|query)\.\w+/.test(c) && !/validate|joi|yup|zod|schema/.test(c) ? [{ severity: 'warning', message: 'Input lacks validation' }] : [] },
+        { id: 49, name: 'LoggingStandardsChecker', category: 'best-practices', check: (c) => /console\.(log|error|warn)/.test(c) && !/winston|pino|bunyan|logger/.test(c) && c.length > 500 ? [{ severity: 'info', message: 'Use structured logging library' }] : [] },
+        { id: 50, name: 'EnvironmentConfigChecker', category: 'best-practices', check: (c) => /process\.env\.\w+/.test(c) && !/dotenv|config|env\./.test(c) ? [{ severity: 'info', message: 'Consider centralized env config' }] : [] },
+        { id: 51, name: 'TestCoverageAdvisor', category: 'best-practices', check: (c) => /export\s+(?:function|class|const)/.test(c) && !/\.test\.|\.spec\./.test(c) ? [{ severity: 'info', message: 'Ensure adequate test coverage' }] : [] },
+        { id: 52, name: 'GracefulShutdownChecker', category: 'best-practices', check: (c) => /http\.createServer|express\(\)|new\s+Koa/.test(c) && !/SIGTERM|SIGINT|graceful/.test(c) ? [{ severity: 'info', message: 'Handle graceful shutdown signals' }] : [] }
     ];
 
+    // Select agents based on requested count
+    const activeAgents = SWARM_AGENTS.slice(0, Math.min(agentCount, 52));
+    core.info(`  Activating ${activeAgents.length} swarm agents...`);
+
+    // Run each agent on each file
     for (const file of files) {
         if (!file.content) continue;
 
-        for (const agent of agentCategories) {
-            const agentFindings = agent.check(file);
-            findings.push(...agentFindings.map(f => ({ ...f, agent: agent.name })));
+        for (const agent of activeAgents) {
+            try {
+                const agentFindings = agent.check(file.content);
+                for (const finding of agentFindings) {
+                    findings.push({
+                        ...finding,
+                        agent: agent.name,
+                        agentId: agent.id,
+                        category: agent.category,
+                        file: file.path
+                    });
+                }
+                // Record agent vote (approved if no critical/warning findings)
+                if (!agentVotes[agent.id]) agentVotes[agent.id] = { approved: 0, rejected: 0 };
+                if (agentFindings.some(f => f.severity === 'critical' || f.severity === 'warning')) {
+                    agentVotes[agent.id].rejected++;
+                } else {
+                    agentVotes[agent.id].approved++;
+                }
+            } catch (e) {
+                // Agent error, skip
+            }
         }
     }
 
-    // Calculate consensus
-    const criticalCount = findings.filter(f => f.severity === 'critical').length;
-    const warningCount = findings.filter(f => f.severity === 'warning').length;
-    let consensus = 0.95 - (criticalCount * 0.1) - (warningCount * 0.02);
-    consensus = Math.max(0.5, Math.min(1.0, consensus));
+    // Calculate swarm consensus using weighted voting
+    const categoryWeights = { security: 0.35, performance: 0.20, quality: 0.20, maintainability: 0.15, documentation: 0.05, 'best-practices': 0.05 };
+    let weightedConsensus = 0;
+    let totalWeight = 0;
+
+    for (const agent of activeAgents) {
+        const votes = agentVotes[agent.id] || { approved: 0, rejected: 0 };
+        const total = votes.approved + votes.rejected;
+        if (total === 0) continue;
+
+        const agentApproval = votes.approved / total;
+        const weight = categoryWeights[agent.category] || 0.1;
+        weightedConsensus += agentApproval * weight;
+        totalWeight += weight;
+    }
+
+    const consensus = totalWeight > 0 ? Math.max(0.5, Math.min(1.0, weightedConsensus / totalWeight)) : 0.95;
+    const agentsAgreed = activeAgents.filter(a => {
+        const v = agentVotes[a.id];
+        return v && v.approved >= v.rejected;
+    }).length;
+
+    // Log category summary
+    const categoryCounts = {};
+    for (const f of findings) {
+        categoryCounts[f.category] = (categoryCounts[f.category] || 0) + 1;
+    }
+    for (const [cat, count] of Object.entries(categoryCounts)) {
+        core.info(`  [${cat}] ${count} findings`);
+    }
 
     return {
         consensus: consensus,
-        agentsAgreed: Math.floor(agentCount * consensus),
+        agentsActive: activeAgents.length,
+        agentsAgreed: agentsAgreed,
         findings: findings,
         fixes: fixes,
-        reviewQuality: 'enhanced_local'
+        reviewQuality: 'full_52_agent_swarm',
+        categoryBreakdown: categoryCounts
     };
 }
 

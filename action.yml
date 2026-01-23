@@ -41,6 +41,10 @@ inputs:
     description: '[PRO] Audit and auto-fix vulnerable npm dependencies'
     required: false
     default: 'false'
+  commit-fixes:
+    description: '[FREE] Automatically commit applied fixes to the repository'
+    required: false
+    default: 'false'
 
   # Security Options
   signature-verify:
@@ -111,6 +115,8 @@ inputs:
 outputs:
   integrity-score:
     description: 'Overall integrity score (0-100)'
+  ast-score:
+    description: 'EPOCH1 AST analysis quality score (0-100)'
   auto-fixes:
     description: 'Number of auto-fixes applied'
   security-fixes:
@@ -121,8 +127,12 @@ outputs:
     description: 'Files watermarked with provenance'
   swarm-consensus:
     description: 'AI swarm consensus score (0.0-1.0)'
+  swarm-agents:
+    description: 'Number of active swarm agents'
   merkle-root:
     description: 'Merkle root hash of all files'
+  commit-sha:
+    description: 'SHA of auto-fix commit (if commit-fixes enabled)'
   report-url:
     description: 'URL to detailed report'
   tier:
